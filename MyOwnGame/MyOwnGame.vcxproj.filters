@@ -2,11 +2,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\WinMain.cpp" />
-    <ClCompile Include="src\Private\Graphics\Graphics.cpp" />
+    <ClCompile Include="src\Private\Graphics\JGraphics.cpp" />
+    <ClCompile Include="src\Private\Game\Game.cpp" />
+    <ClCompile Include="src\Private\Input\JInput.cpp" />
+    <ClCompile Include="src\Private\Game\Spacewar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Public\Data\Constants.h" />
-    <ClInclude Include="src\Public\Graphics\Graphics.h" />
+    <ClInclude Include="src\Public\Graphics\JGraphics.h" />
     <ClInclude Include="src\Public\Error\GameError.h" />
+    <ClInclude Include="src\Public\Game\Game.h" />
+    <ClInclude Include="src\Public\Input\JInput.h" />
+    <ClInclude Include="src\Public\Game\Spacewar.h" />
   </ItemGroup>
 </Project>

@@ -8,8 +8,6 @@
 
 #pragma region 헤더
 #include <d3d9.h>
-#include "Data/Constants.h"
-#include "Error/GameError.h"
 #pragma endregion
 
 #pragma region DirectX 포인터 타입
@@ -23,14 +21,13 @@
     ((COLOR_ARGB)((((a)&0xff)<<24)|(((r)&0xff)<<16)|(((g)&0xff)<<8)|((b)&0xff)))
 #pragma endregion
 
-class Graphics
+class JGraphics
 {
 public:
-	Graphics();
+	JGraphics();
 
-	virtual ~Graphics();
+	virtual ~JGraphics();
 
-	// Releases direct3d and device3d.
 	void ReleaseAll();
 
 	/**
@@ -42,8 +39,29 @@ public:
 	 */
 	void Initialize(HWND hw, int inWidth, int inHeight, bool inFullscreen);
 
+	/* 그래픽 디바이스 리셋*/
+	HRESULT Reset();
+
 	/* 백 버퍼로 교체*/
 	HRESULT ShowBackbuffer();
+
+	/**
+	 * \brief 어댑터가 d3dpp에 지정된 백 버퍼의 높이, 너비, 리프레스 속도와 호환되는지 확인.
+	 * \return 
+	 */
+	bool IsAdapterCompatible();
+
+	/* 디바이스가 Lost 상태인지 확인 */
+	HRESULT GetDeviceState() const;
+
+	/* Clear 할 때 초기화 할 색상 */
+	void SetBackColor(const COLOR_ARGB NewColor)
+	{
+		BackColor = NewColor;
+	}
+
+	HRESULT BeginScene() const;
+	HRESULT EndScene() const;
 
 private:
 	/**
@@ -54,16 +72,18 @@ private:
 
 private:
 #pragma region DirectX 포인터 및 관련 변수
-	LP_3D direct3d;
-	LP_3DDEVICE device3d;
-	D3DPRESENT_PARAMETERS d3dpp{};
+	LP_3D Direct3D;
+	LP_3DDEVICE Device3D;
+	D3DPRESENT_PARAMETERS D3DPP{};
+	D3DDISPLAYMODE pMode;
 #pragma endregion
 
 #pragma region 다른 변수들
-	HRESULT result{};
-	HWND hwnd{};
-	bool fullscreen;
-	int width;
-	int height;
+	HRESULT Result{};
+	HWND Hwnd{};
+	bool Fullscreen;
+	int Width;
+	int Height;
+	COLOR_ARGB BackColor;
 #pragma endregion
 };

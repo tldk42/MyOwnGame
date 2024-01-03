@@ -4,11 +4,15 @@
 #include <windows.h>
 #include <cstdlib>             // 메모리 누수 확인용
 #include <crtdbg.h>             // 메모리 누수 확인용
-#include "Graphics/Graphics.h"
+
+#include "Data/Constants.h"
+#include "Error/GameError.h"
+#include "Graphics/JGraphics.h"
+#include "Game/Spacewar.h"
 
 
-HINSTANCE hInst;
-Graphics* graphics;
+Spacewar* game = nullptr;
+HWND ghwnd = nullptr;
 
 bool CreateMainWindow(HWND& hwnd, HINSTANCE, int);
 LRESULT WINAPI WinProc(HWND, UINT, WPARAM, LPARAM);
@@ -22,15 +26,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 #endif
 
 	MSG msg;
-	HWND hwnd = nullptr;
 
-	if (!CreateMainWindow(hwnd, hInstance, nShowCmd))
+	game = new Spacewar;
+	if (!CreateMainWindow(ghwnd, hInstance, nShowCmd))
 		return 1;
 
 	try
 	{
-		graphics = new Graphics();
-		graphics->Initialize(hwnd, WINDOW_WIDTH, WINDOW_HEIGHT, FULLSCREEN);
+		game->Initialize(ghwnd);
 
 		int done = 0;
 
@@ -46,22 +49,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			}
 			else
 			{
-				graphics->ShowBackbuffer();
+				game->Run(ghwnd);
 			}
 		}
-		SAFE_DELETE(graphics);
+		SAFE_DELETE(game);
 		return msg.wParam;
 	}
 	catch (const GameError& error)
 	{
+		game->DeleteAll();
+		DestroyWindow(ghwnd);
 		MessageBox(nullptr, error.GetMessage(), "Error", MB_OK);
 	}
 	catch (...)
 	{
+		game->DeleteAll();
+		DestroyWindow(ghwnd);
 		MessageBox(nullptr, "알 수 없는 에러 발생.", "Error", MB_OK);
 	}
 
-	SAFE_DELETE(graphics);
+	SAFE_DELETE(game);
 	return 0;
 }
 
@@ -72,7 +79,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 bool CreateMainWindow(HWND& hwnd, HINSTANCE hInstance, int nShowCmd)
 {
 	WNDCLASSEX wcx;
-	
+
 	// 윈도우 관련 변수 초기화
 	wcx.cbSize = sizeof(wcx);
 	wcx.style = CS_HREDRAW | CS_VREDRAW; // 사이즈 변경시 다시 그려짐
@@ -93,51 +100,47 @@ bool CreateMainWindow(HWND& hwnd, HINSTANCE hInstance, int nShowCmd)
 	if (!RegisterClassEx(&wcx))
 		return false;
 
+	constexpr DWORD style = FULLSCREEN
+		                        ? (WS_EX_TOPMOST | WS_VISIBLE | WS_POPUP)
+		                        : WS_OVERLAPPEDWINDOW;
+
 	// 윈도우 생성
-	hwnd = CreateWindow(CLASS_NAME, APP_TITLE, WS_OVERLAPPEDWINDOW,
-	                    CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH,
-	                    WINDOW_HEIGHT, nullptr, nullptr, hInstance, nullptr);
+	hwnd = CreateWindow(CLASS_NAME,
+	                    APP_TITLE,
+	                    style,
+	                    CW_USEDEFAULT,
+	                    CW_USEDEFAULT,
+	                    WINDOW_WIDTH,
+	                    WINDOW_HEIGHT,
+	                    nullptr,
+	                    nullptr,
+	                    hInstance,
+	                    nullptr);
 
 	if (!hwnd)
 		return false;
 
+	if (!FULLSCREEN)
+	{
+		// 순수 클라이언트 영역
+		RECT clientRect;
+		GetClientRect(hwnd, &clientRect);
+
+		// 실제 크기는 타이틀과 테두리가 포함되므로 다시 계산.
+		MoveWindow(hwnd,
+		           0,
+		           0,
+		           WINDOW_WIDTH + (WINDOW_WIDTH - clientRect.right),
+		           WINDOW_HEIGHT + (WINDOW_HEIGHT - clientRect.bottom),
+		           TRUE);
+	}
+
 	ShowWindow(hwnd, nShowCmd);
 
-	UpdateWindow(hwnd);
 	return true;
 }
 
-LRESULT WINAPI WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	switch (msg)
-	{
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	// case WM_CHAR:
-	// 	switch (wParam)
-	// 	{
-	// 	case 0x08:
-	// 	case 0x09:
-	// 	case 0x0A:
-	// 	case 0x0D:
-	// 	case 0x1B:
-	// 		MessageBeep((UINT)-1);
-	// 		return 0;
-	// 	default:
-	// 		ch = (TCHAR)wParam;
-	// 		InvalidateRect(hWnd, nullptr, TRUE);
-	// 		return 0;
-	// 	}
-	// case WM_PAINT:
-	// 	hdc = BeginPaint(hWnd, &ps);
-	// 	GetClientRect(hWnd, &rect);
-	// 	TextOut(hdc, rect.right / 2, rect.bottom / 2, &ch, 1);
-	// 	EndPaint(hWnd, &ps);
-	// 	return 0;
-	default:
-		return DefWindowProc(hWnd, msg, wParam, lParam);
-	}
-
-	return DefWindowProc(hWnd, msg, wParam, lParam);
+	return game->MessageHandler(hwnd, msg, wParam, lParam);
 }

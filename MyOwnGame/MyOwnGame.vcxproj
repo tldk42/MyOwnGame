@@ -101,7 +101,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;winmm.lib;xinput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,7 +118,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;winmm.lib;xinput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -154,12 +154,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Private\Graphics\Graphics.cpp" />
+    <ClCompile Include="src\Private\Game\Spacewar.cpp" />
+    <ClCompile Include="src\Private\Input\JInput.cpp" />
+    <ClCompile Include="src\Private\Game\Game.cpp" />
+    <ClCompile Include="src\Private\Graphics\JGraphics.cpp" />
     <ClCompile Include="src\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Public\Game\Spacewar.h" />
+    <ClInclude Include="src\Public\Input\JInput.h" />
+    <ClInclude Include="src\Public\Game\Game.h" />
     <ClInclude Include="src\Public\Error\GameError.h" />
-    <ClInclude Include="src\Public\Graphics\Graphics.h" />
+    <ClInclude Include="src\Public\Graphics\JGraphics.h" />
     <ClInclude Include="src\Public\Data\Constants.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
